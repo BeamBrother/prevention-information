@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+    <meta name="generator" content="Hugo 0.88.1">
+    <!-- 解决ajax被spring security的CSRF拦截POST和PUT请求问题 -->
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+    <title>角色管理</title>
+
+    <!-- Bootstrap core CSS -->
+    <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
+    <!-- Custom styles for this template -->
+    <link th:href="@{/css/dashboard.css}" rel="stylesheet">
+    <link th:href="@{/css/toastr.min.css}" rel="stylesheet">
+    <!--    <link rel="stylesheet" href="https://getbootstrap.com/assets/css/docs.min.css" />-->
+    <link href="http://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link th:href="@{/css/base.css}" rel="stylesheet">
+    <link th:href="@{/css/tempusdominus-bootstrap-4.css}" rel="stylesheet">
+
+    <style>
+        @media (min-width: 768px) {
+            #un {
+                color: var(--light);
+                font-size: 1.1rem;
+            }
+        }
+
+    </style>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"
+            integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+            crossorigin="anonymous"></script>
+    <script>window.jQuery || document.write('<script th:src="@{/js/jquery.slim.min.js}"><\/script>')</script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script th:src="@{/js/bootstrap.min.js}"></script>
+    <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+    <script type="text/javascript" th:src="@{/js/moment-with-locales.min.js}"></script>
+    <script type="text/javascript" th:src="@{/js/moment-timezone-with-data-2012-2022.min.js}"></script>
+    <script th:src="@{/js/base.js}"></script>
+    <script th:src="@{/js/tempusdominus-bootstrap-4.js}"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+    <script th:src="@{/js/toastr.min.js}"></script>
+    <script th:src="@{/js/user-info.js}"></script>
+    <script th:src="@{/js/dashboard.js}"></script>
+
+    <script type="text/javascript">
+        window.onload = function () {
+            app()
+        }
+    </script>
+
+</head>
+<body>
+<div th:replace="~{common :: top-nav}"></div>
+
+<div class="container-fluid">
+    <div class="row">
+        <!--左侧导航-->
+        <div class="col-2">
+            <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                <a class="nav-link" id="v-pills-admin-tab" role="tab" aria-selected="true" th:href="@{/login/main}" sec:authorize="hasAnyRole('ADMIN')">主页</a>
+                <a class="nav-link" id="v-pills-settings-tab" role="tab" aria-selected="true" th:href="@{/access/allInformation}" sec:authorize="hasAnyRole('MG','ADMIN')">出入信息管理</a>
+                <a class="nav-link" id="v-pills-health-tab" role="tab" aria-selected="true" th:href="@{/detected/findAll}" sec:authorize="hasAnyRole('MG','ADMIN')">核酸检测信息</a>
+                <a class="nav-link" id="v-pills-on-day-staff-tab" role="tab" aria-selected="true" th:href="@{/guard/onDayStaff}" sec:authorize="hasAnyRole('MG','ADMIN')">在班人员</a>
+                <a class="nav-link" id="v-pills-add-student-tab" role="tab" aria-selected="true" th:href="@{/addStu}" sec:authorize="hasAnyRole('ADMIN')">添加学生</a>
+                <a class="nav-link" id="v-pills-add-guard-tab" role="tab" aria-selected="true" th:href="@{/addSec}" sec:authorize="hasAnyRole('ADMIN')">添加工作人员</a>
+                <a class="nav-link active" id="v-pills-role-tab" role="tab" aria-selected="true" th:href="@{/adminPart/viewAll}" sec:authorize="hasAnyRole('ADMIN')">角色管理</a>
+            </div>
+        </div>
+
+        <!-- 角色管理 -->
+        <div class="col-10 px-3 py-md-3">
+            <div class="tab-pane fade show active" id="v-pills-settings" role="tabpanel" sec:authorize="hasAnyRole('ADMIN')">
+                <div class="row justify-content-end px-lg-5 py-md-3">
+                    <div class="col-">
+                        <button type="button" class="btn btn-warning btn-sm" data-toggle="model" data-target="#exampleModal" th:onclick="addr()">添加角色</button>
+                        <!-- 修改弹框 -->
+                        <div class="modal fade" id="exampleModal" tabindex="-1"
+                             aria-labelledby="exampleModalLabel" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="exampleModalLabel">角色添加</h5>
+                                        <button type="button" class="close" data-dismiss="modal"
+                                                aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form class="form-inline">
+                                            <div class="form-group py-md-3">
+                                                <label for="recipient-part"
+                                                       class="h6">角色: </label>
+                                                <input type="text" class="form-control" id="recipient-part"
+                                                       value="">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="recipient-des"
+                                                       class="h6">描述: </label>
+                                                <input type="text" class="form-control" value="" id="recipient-des">
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary"
+                                                data-dismiss="modal">关闭
+                                        </button>
+                                        <button type="button" class="btn btn-primary" onclick="save()">
+                                            保存
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row justify-content-center">
+                    <div class="col-md-11">
+                        <table id="download-excel" class="table table-striped table-hover table-bordered">
+                            <thead class="thead-dark">
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">角色</th>
+                            </tr>
+                            </thead>
+                            <tbody id="table_result">
+                            <tr th:each="role,stat : ${roles}" th:class="${stat.odd}?'odd':'even'">
+                                <th scope="row" th:text="${stat.count}"></th>
+                                <td th:text="${role.describe}"></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div id="barcon" name="barcon"></div>
+            </div>
+        </div>
+        <input type="hidden" id="waring-msg" th:value="${waring}">
+    </div>
+</div>
+
+</body>
+<script type="text/javascript">
+    var token = $("meta[name='_csrf']").attr("content");
+    var header = $("meta[name='_csrf_header']").attr("content");
+    $(document).ajaxSend(function (e, xhr, options) {
+        xhr.setRequestHeader(header, token);
+    })
+    //添加 跳出模块
+    function addr() {
+        $("#exampleModal").modal({
+            keyboard: true
+        })
+    }
+    //添加到数据库
+    function save() {
+        var part = $("#recipient-part").val();
+        var describe = $("#recipient-des").val();
+        var url = "/adminPart/addRo";
+        $.ajax({
+           url: url,
+            type: "post",
+            dataType: "json",
+            data: {
+                "part": part,
+                "describe": describe
+            },
+            success:function (res) {
+                //关闭对话框
+                $("#exampleModal").modal("hide");
+                //清空文本框
+                $("#recipient-part").val("");
+                $("#recipient-des").val("");
+                //刷新页面
+                window.location.href = "/adminPart/viewAll";
+            }
+        });
+    }
+
+    //获取参数 提示是否成功
+    function msg() {
+        toastr.options.positionClass = 'toast-top-center';
+        var warMsg = $('#waring-msg').val();
+        if (!isEmpty(warMsg)) {
+            toastr.error('' + warMsg, '提示')
+        }
+        return false
+    }
+
+    //调用方法
+    function app() {
+        msg()
+        goPage(1, 20)
+    }
+
+    //分页
+    function goPage(pno, psize) {
+        var itable = document.getElementById("table_result");//通过ID找到表格
+        var num = itable.rows.length;//表格所有行数(所有记录数)
+        var totalPage = 0;//总页数
+        var pageSize = psize;//每页显示行数
+        //总共分几页
+        if (num / pageSize > parseInt(num / pageSize)) {
+            totalPage = parseInt(num / pageSize) + 1;
+        } else {
+            totalPage = parseInt(num / pageSize);
+        }
+        var currentPage = pno;//当前页数
+        var startRow = (currentPage - 1) * pageSize + 1;//开始显示的行  1
+        var endRow = currentPage * pageSize;//结束显示的行   10
+        endRow = (endRow > num) ? num : endRow;
+        //遍历显示数据实现分页
+        for (var i = 1; i < (num + 1); i++) {
+            var irow = itable.rows[i - 1];
+            if (i >= startRow && i <= endRow) {
+                irow.style.display = "table-row";
+            } else {
+                irow.style.display = "none";
+            }
+        }
+        var tempStr = "";
+        tempStr += "<div class='row justify-content-center py-md-3'>" +
+            "<nav aria-label=\"AccessInfo For Student\">" +
+            "<ul class=\"pagination\">"
+        if (currentPage > 1) {
+            tempStr += "<li class=\"page-item\">" +
+                "<a class=\"page-link\" href=\"#\" onClick=\"goPage(" + (currentPage - 1) + "," + psize + ")\"><上一页&nbsp;</a>" +
+                "</li>";
+
+            var jhs = 1;
+            for (var j = 1; j <= totalPage; j++) {
+                tempStr += "<li class=\"page-item\">" +
+                    "<a class=\"page-link\" href=\"#\" onClick=\"goPage(" + j + "," + psize + ")\">" + j + "</a>" +
+                    "</li>";
+                jhs++;
+                if (jhs > 6) {
+                    tempStr += "<li class=\"page-item disabled\">" +
+                        "<a class=\"page-link\" >...</a>" +
+                        "</li>";
+                    break;
+                }
+            }
+        } else {
+            tempStr += "<li class=\"page-item disabled\">" +
+                "<a class=\"page-link\" href=\"#\" onClick=\"goPage(" + (currentPage - 1) + "," + psize + ")\"><上一页&nbsp;</a>" +
+                "</li>"
+            var jhs = 1;
+            for (var j = 1; j <= totalPage; j++) {
+                tempStr += "<li class=\"page-item\">" +
+                    "<a class=\"page-link\" href=\"#\" onClick=\"goPage(" + j + "," + psize + ")\">" + j + "</a>" +
+                    "</li>";
+                jhs++;
+                if (jhs > 6) {
+                    tempStr += "<li class=\"page-item disabled\">" +
+                        "<a class=\"page-link\" >...</a>" +
+                        "</li>";
+                    break;
+                }
+            }
+        }
+        if (currentPage < totalPage) {
+            tempStr += "<li class=\"page-item\">" +
+                "<a class=\"page-link\" href=\"#\" onClick=\"goPage(" + (currentPage + 1) + "," + psize + ")\">下一页>&nbsp;</a>" +
+                "</li>";
+            for (var j = 1; j <= totalPage; j++) {
+            }
+        } else {
+            tempStr += "<li class=\"page-item disabled\">" +
+                "<a class=\"page-link\" href=\"#\" onClick=\"goPage(" + (currentPage + 1) + "," + psize + ")\">下一页>&nbsp;</a>" +
+                "</li>";
+            for (var j = 1; j <= totalPage; j++) {
+            }
+        }
+        tempStr += "</ul>" +
+            "</nav>" +
+            "</div>"
+        tempStr += "<div class='row justify-content-center'>当前第 " + pno + " 页 总计 " + totalPage + " 页 共 " + num + " 条记录</div>"
+        document.getElementById("barcon").innerHTML = tempStr;
+    }
+</script>
+</html>

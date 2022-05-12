@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+    <meta name="generator" content="Hugo 0.88.1">
+    <!-- 解决ajax被spring security的CSRF拦截POST和PUT请求问题 -->
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+    <title>签到</title>
+
+    <!-- Bootstrap core CSS -->
+    <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
+    <link rel="stylesheet" href="http://cache.amap.com/lbs/static/main1119.css"/>
+    <style>
+        @media (min-width: 768px) {
+            #un {
+                color: var(--light);
+                font-size: 1.1rem;
+            }
+        }
+
+    </style>
+    <!-- Custom styles for this template -->
+    <link th:href="@{/css/dashboard.css}" rel="stylesheet">
+    <link th:href="@{/css/toastr.min.css}" rel="stylesheet">
+
+</head>
+<body onload="app()">
+
+<div th:replace="~{common :: top-nav}"></div>
+
+<div class="container-fluid">
+    <div class="row">
+        <!--左侧导航-->
+        <div class="col-2">
+            <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                <a class="nav-link" id="v-pills-home-tab" role="tab" aria-selected="true" th:href="@{/login/main}" sec:authorize="hasAnyRole('STUDENT','GUARD','MG','TESTER')">个人信息</a>
+                <a class="nav-link" id="v-pills-profile-tab" role="tab" aria-selected="false" th:href="@{/access/info(id=${session.user.id})}" sec:authorize="hasRole('STUDENT')">出入记录</a>
+                <a class="nav-link" id="v-pills-result-tab" role="tab" aria-selected="false" th:href="@{/detected/findResultByNo(id=${session.user.id})}" sec:authorize="hasRole('STUDENT')">核酸检测结果信息</a>
+                <a class="nav-link active" id="v-pills-sign-ed" role="tab" aria-selected="false" th:href="@{/stu/sign-ed}" sec:authorize="hasRole('STUDENT')">签到信息</a>
+            </div>
+        </div>
+        <!-- 签到 -->
+        <div class="col-10 sign divider" id="main">
+            <div class="tab-pane fade show active" role="tabpanel" sec:authorize="hasAnyRole('STUDENT')">
+                <div class="row justify-content-center py-2">
+                    <div class="col-md-6 col-sm-6" id="MyMessage">
+                        <div class="row gx-lg-5">
+                            <!-- 已上报 -->
+                            <div id="div-sign-ed" class="col-lg-8 mb-4" style="display: none">
+                                <div class="icon-demo mb-4 rounded-3 d-flex align-items-center justify-content-center p-3 py-5"
+                                     style="font-size: 5em" role="img" aria-label="Check circle fill - large preview">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" fill="currentColor"
+                                         color="#4ccc3b"
+                                         class="bi bi-check-circle-fill" viewBox="0 0 16 16">
+                                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+                                    </svg>
+                                </div>
+                                <div class="rounded-3 d-flex align-items-center justify-content-center p-3">
+                                    <label class="h4">上报已提交</label>
+                                </div>
+                                <div class="rounded-3 d-flex align-items-center justify-content-center p-3">
+                                    <a th:href="@{/stu/sign-formation}" class="page-link text-primary">查看已提交上报</a>
+                                </div>
+
+                            </div>
+                            <!-- 未上报 -->
+                            <div id="div-sign-ing" class="col-lg-8 mb-4" style="display: none">
+                                <div class="icon-demo mb-4 rounded-3 d-flex align-items-center justify-content-center p-3 py-5"
+                                     style="font-size: 5em" role="img" aria-label="Check circle fill - large preview">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" fill="currentColor"
+                                         color="#fac664" class="bi bi-x-circle-fill" viewBox="0 0 16 16">
+                                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293 5.354 4.646z"/>
+                                    </svg>
+                                </div>
+                                <div class="rounded-3 d-flex align-items-center justify-content-center p-3">
+                                    <label class="h4">未健康上报</label>
+                                </div>
+                                <div class="rounded-3 d-flex align-items-center justify-content-center p-3">
+                                    <a class="page-link text-primary">现在去上报</a>
+                                </div>
+
+                            </div>
+                            <input type="hidden" id="success-msg" th:value="${param.success}">
+                            <input type="hidden" id="error-msg" th:value="${param.error}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"
+        integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+        crossorigin="anonymous"></script>
+<script>window.jQuery || document.write('<script th:src="@{/js/jquery.slim.min.js}"><\/script>')</script>
+<script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+<script src="https://webapi.amap.com/maps?v=1.4.10&key=ccc557b111dd155750089e029fe3126e&plugin=AMap.AdvancedInfoWindow"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+<script th:src="@{/js/user-info.js}"></script>
+<script th:src="@{/js/dashboard.js}"></script>
+<script th:src="@{/js/toastr.min.js}"></script>
+<script th:src="@{/js/form-validation.js}"></script>
+</body>
+<script type="text/javascript">
+    var token = $("meta[name='_csrf']").attr("content");
+    var header = $("meta[name='_csrf_header']").attr("content");
+    $(document).ajaxSend(function (e, xhr, options) {
+        xhr.setRequestHeader(header, token);
+    })
+
+    function signE() {
+        var stuno = $('#sno').val();
+        $.ajax({
+            url: "/security/find",
+            type: "get",
+            dataType: "json",
+            data: {"sno": stuno},
+            success: function (res) {
+                if (res.status) {
+                   $("#div-sign-ed").show();
+                   $("#div-sign-ing").hide();
+                }else{
+                    $("#div-sign-ed").show();
+                    $("#div-sign-ing").hide();
+                }
+            }
+        })
+    }
+
+    function isEmpty(v) {
+        switch (typeof v) {
+            case 'undefined':
+                return true;
+            case 'string':
+                if (v.replace(/(^[ \t\n\r]*)|([ \t\n\r]*$)/g, '').length == 0) return true;
+                break;
+            case 'boolean':
+                if (!v) return true;
+                break;
+            case 'number':
+                if (0 === v || isNaN(v)) return true;
+                break;
+            case 'object':
+                if (null === v || v.length === 0) return true;
+                for (var i in v) {
+                    return false;
+                }
+                return true;
+        }
+        return false;
+    }
+
+    function msg() {
+        toastr.options.positionClass = 'toast-top-center';
+        var errMsg = $('#error-msg').val();
+        var succMsg = $('#success-msg').val();
+        if (!isEmpty(succMsg)) {
+            toastr.success('' + succMsg, '提示')
+        } else if (!isEmpty(errMsg)) {
+            toastr.error('' + errMsg, '错误')
+        }
+        return false
+    }
+
+    function app() {
+        msg()
+        findSign()
+        signE()
+    }
+</script>
+</html>

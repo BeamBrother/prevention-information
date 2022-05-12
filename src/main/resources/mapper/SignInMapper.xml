@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bl.ep.mapper.SignInMapper">
+    <resultMap id="sign" type="SignIn">
+        <id property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="sno" column="sno"/>
+        <result property="sname" column="sname"/>
+        <result property="tw" column="tw"/>
+        <result property="bd" column="bd"/>
+        <result property="jcs" column="jcs"/>
+        <result property="jc" column="jc"/>
+        <result property="cn" column="cn"/>
+        <result property="address" column="address"/>
+        <result property="reportTime" column="report_time"/>
+    </resultMap>
+
+    <cache-ref namespace="com.bl.ep.mapper.SignInMapper"></cache-ref>
+
+    <insert id="insertSignIn" parameterType="SignIn">
+        insert into ep_clock_in(id, sno, sname, tw, bd, jcs, jc, cn, address, report_time)
+        values (#{id}, #{sno}, #{sname}, #{tw}, #{bd}, #{jcs}, #{jc}, #{cn}, #{address}, #{reportTime})
+    </insert>
+
+    <update id="updateSignIn" parameterType="SignIn">
+        update ep_clock_in
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="tw!=null">
+                tw=#{tw},
+            </if>
+            <if test="bd!=null">
+                bd=#{bd},
+            </if>
+            <if test="jcs!=null">
+                jcs=#{jcs},
+            </if>
+            <if test="jc!=null">
+                jc=#{jc},
+            </if>
+            <if test="cn!=null">
+                cn=#{cn},
+            </if>
+            <if test="address!=null">
+                address=#{address},
+            </if>
+            <if test="reportTime!=null">
+                report_time=#{reportTime},
+            </if>
+        </trim>
+        where id=#{id}
+    </update>
+
+    <select id="selectByStudentNno" resultMap="sign">
+        select id,
+               sno,
+               sname,
+               tw,
+               bd,
+               jcs,
+               jc,
+               cn,
+               address,
+               report_time
+        from ep_clock_in
+        where sno = #{sno}
+    </select>
+
+    <select id="selectAll" resultMap="sign">
+        select id,
+               sno,
+               sname,
+               tw,
+               bd,
+               jcs,
+               jc,
+               cn,
+               address,
+               report_time
+        from ep_clock_in
+    </select>
+</mapper>

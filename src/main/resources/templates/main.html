@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+    <meta name="generator" content="Hugo 0.88.1">
+    <!-- 解决ajax被spring security的CSRF拦截POST和PUT请求问题 -->
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+    <title>个人信息</title>
+
+    <!-- Bootstrap core CSS -->
+    <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
+    <style>
+        @media (min-width: 768px) {
+            #un {
+                color: var(--light);
+                font-size: 1.1rem;
+            }
+        }
+
+    </style>
+    <!-- Custom styles for this template -->
+    <link th:href="@{/css/dashboard.css}" rel="stylesheet">
+    <link th:href="@{/css/toastr.min.css}" rel="stylesheet">
+
+
+</head>
+<body onload="app()">
+
+<div th:replace="~{common :: top-nav}"></div>
+
+<div class="container-fluid">
+    <div class="row">
+        <!--左侧导航-->
+        <div class="col-2">
+            <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist"  aria-orientation="vertical">
+                <a class="nav-link active" id="v-pills-admin-tab" role="tab" aria-selected="true" th:href="@{/login/main}" sec:authorize="hasAnyRole('ADMIN')">主页</a>
+                <a class="nav-link active" id="v-pills-home-tab" role="tab" aria-selected="true" th:href="@{/login/main}" sec:authorize="hasAnyRole('STUDENT','GUARD','MG','TESTER')">个人信息</a>
+                <a class="nav-link" id="v-pills-profile-tab" role="tab" aria-selected="false" th:href="@{/access/info(id=${session.user.id})}" sec:authorize="hasRole('STUDENT')">出入记录</a>
+                <a class="nav-link" id="v-pills-result-tab" role="tab" aria-selected="false" th:href="@{/detected/findResultByNo(id=${session.user.id})}" sec:authorize="hasRole('STUDENT')">核酸检测结果信息</a>
+                <a class="nav-link" id="v-pills-sign-ed" role="tab" aria-selected="false" th:href="@{/stu/sign-formation}" sec:authorize="hasRole('STUDENT')">签到信息</a>
+                <a class="nav-link" id="v-pills-messages-tab" role="tab" aria-selected="false" th:href="@{/access/accessInfo}" sec:authorize="hasAnyRole('GUARD','MG')">出入信息登记</a>
+                <a class="nav-link" id="v-pills-tester-tab" role="tab" aria-selected="true" th:href="@{/studentHealth}" sec:authorize="hasRole('TESTER')">核酸检测信息登记</a>
+                <a class="nav-link" id="v-pills-code-tab" role="tab" aria-selected="true" th:href="@{/health/heathCode}" sec:authorize="hasRole('TESTER')">健康码信息</a>
+                <a class="nav-link" id="v-pills-settings-tab" role="tab" aria-selected="true" th:href="@{/access/allInformation}" sec:authorize="hasAnyRole('MG','ADMIN')">出入信息管理</a>
+                <a class="nav-link" id="v-pills-health-tab" role="tab" aria-selected="true" th:href="@{/detected/findAll}" sec:authorize="hasAnyRole('MG','ADMIN')">核酸检测信息</a>
+                <a class="nav-link" id="v-pills-staff-tab" role="tab" aria-selected="true" th:href="@{/guard/arrangeStaff}" sec:authorize="hasAnyRole('MG')">人员安排</a>
+                <a class="nav-link" id="v-pills-on-day-staff-tab" role="tab" aria-selected="true" th:href="@{/guard/onDayStaff}" sec:authorize="hasAnyRole('MG','ADMIN')">在班人员</a>
+                <a class="nav-link" id="v-pills-add-student-tab" role="tab" aria-selected="true" th:href="@{/addStu}" sec:authorize="hasAnyRole('ADMIN')">添加学生</a>
+                <a class="nav-link" id="v-pills-add-guard-tab" role="tab" aria-selected="true" th:href="@{/addSec}" sec:authorize="hasAnyRole('ADMIN')">添加工作人员</a>
+                <a class="nav-link" id="v-pills-role-tab" role="tab" aria-selected="true" th:href="@{/adminPart/viewAll}" sec:authorize="hasAnyRole('ADMIN')">角色管理</a>
+            </div>
+        </div>
+        <!-- 个人信息 -->
+        <div class="col-10">
+            <div class="mx-auto" style="width: 300px;margin-top: 100px;" sec:authorize="hasRole('ADMIN')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" fill="currentColor" class="bi bi-person-workspace" viewBox="0 0 16 16">
+                    <path d="M4 16s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H4Zm4-5.95a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/>
+                    <path d="M2 1a2 2 0 0 0-2 2v9.5A1.5 1.5 0 0 0 1.5 14h.653a5.373 5.373 0 0 1 1.066-2H1V3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v9h-2.219c.554.654.89 1.373 1.066 2h.653a1.5 1.5 0 0 0 1.5-1.5V3a2 2 0 0 0-2-2H2Z"/>
+                </svg>
+                <h1 class="text-center">超级管理员</h1>
+            </div>
+            <div class="tab-pane fade show active" role="tabpanel" sec:authorize="hasAnyRole('STUDENT','GUARD','MG','TESTER')">
+                <div class="row">
+                    <div class="col-md-12 col-sm-12" id="MyMessage">
+                        <div class="row">
+                            <div class="col-md-8 order-md-1 px-5 py-md-3">
+                                <h4 class="mb-3">
+                                    <span th:text="${session.user.username}"></span>
+                                    个人信息
+                                </h4>
+                                <div class="mb-3">
+                                    <label for="no" class="h6">
+                                        <span sec:authorize="hasRole('STUDENT')" th:text="学号"></span>
+                                        <span sec:authorize="hasAnyRole('GUARD','MG','TESTER')" th:text="工号"></span>
+                                    </label>
+                                    <input type="text" class="form-control" id="no" th:value="${session.user.no}" readonly>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-12 mb-3">
+                                        <label class="h6" for="username">姓名</label>
+                                        <input type="text" class="form-control" id="username"
+                                               th:value="${session.user.username}" readonly>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3" th:if="${session.user.birthday != null}">
+                                    <label for="birthday" class="h6">出生日期</label>
+                                    <input type="text" class="form-control" id="birthday" th:value="${#dates.format(session.user.birthday,'yyyy-MM-dd')}" readonly>
+                                </div>
+
+                                <div class="mb-3" th:if="${session.user.birthday != null}">
+                                    <label for="user-age" class="h6">年龄</label>
+                                    <input type="text" class="form-control" id="user-age" readonly>
+                                </div>
+
+                                <div class="mb-3" th:if="${session.user.email != null}">
+                                    <label for="email" class="h6">
+                                        <span sec:authorize="hasRole('STUDENT')" th:text="学生邮箱"></span>
+                                        <span sec:authorize="hasAnyRole('GUARD','MG','TESTER')" th:text="工作人员邮箱"></span>
+                                    </label>
+                                    <input type="email" class="form-control" id="email" th:value="${session.user.email}"
+                                           readonly>
+                                </div>
+
+                                <div class="mb-3" sec:authorize="hasAnyRole('GUARD','MG','TESTER')">
+                                    <label for="phone" class="h6">电话号码</label>
+                                    <input type="email" class="form-control" id="phone" th:value="${session.user.phone}"
+                                           readonly>
+                                </div>
+
+                                <div class="mb-3" sec:authorize="hasAnyRole('GUARD','MG','TESTER')">
+                                    <label class="h6">工作状态：</label>
+                                    <label class="h6">
+                                        <span th:text="今天值班" th:if="${session.user.onDay}"></span>
+                                        <span th:text="今天不值班" th:if="${!session.user.onDay}"></span>
+                                    </label>
+                                </div>
+
+                                <hr class="mb-4">
+                                <div class="mb-3" sec:authorize="hasAnyRole('STUDENT')" th:if="${session.healthCode != null}">
+                                    <label class="h6">健康码信息：</label>
+                                    <div>
+                                        <label>时间：</label>
+<!--                                        <span th:text="${#dates.format(new java.util.Date().getTime(),'yyyy-MM-dd HH:mm:ss')}"></span>-->
+                                        <span id="healthTime"></span>
+                                    </div>
+                                    <div>
+                                        <label>姓名：</label>
+                                        <span th:text="${session.user.username}"></span>
+                                    </div>
+                                    <div>
+                                        <label>健康码状态：</label>
+                                        <span th:text="绿码" th:if="${session.healthCode.hCode == 1}"></span>
+                                        <span th:text="黄码" th:if="${session.healthCode.hCode == 2}"></span>
+                                        <span th:text="红码" th:if="${session.healthCode.hCode == 3}"></span>
+                                    </div>
+                                    <script>
+                                        // 动态时间
+                                        function show_time() {
+                                            var time=new Date();
+                                            var year=time.getFullYear();
+                                            var month=time.getMonth()+1;
+                                            var day=time.getDate();
+                                            var hour=time.getHours();
+                                            var min=time.getMinutes();
+                                            var sec=time.getSeconds();
+                                            document.getElementById("healthTime").innerHTML=year+"-"+month+"-"+day+"&nbsp;&nbsp;" +hour+":"+min+":"+sec;
+                                        }
+                                        //serInterval:以相同的时间间隔执行某个操作
+                                        setInterval("show_time()",1000);
+                                    </script>
+                                </div>
+                                <hr class="mb-4">
+
+                                <div id="pasd" class="mb-3">
+                                    <label for="pwd" class="h6">密码</label>
+                                    <div class="row mb-3">
+                                        <div class="col-md-8">
+                                            <input type="password" class="form-control" id="pwd" placeholder="******"
+                                                   disabled>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <button type="button" class="btn btn-warning" th:onclick="xg()">修改密码
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <form th:action="@{/student/updatePassword}" method="post" class="needs-validation newpwd" style="display: none" sec:authorize="hasRole('STUDENT')" novalidate>
+                                    <div class="mb-3">
+                                        <label for="cpassword" class="h6">初始密码</label>
+                                        <div class="form-row mb-3">
+                                            <div class="col-md-8">
+                                                <input name="oldpassword" type="password" class="form-control" id="cpassword" placeholder="初始密码" required>
+                                                <div class="invalid-tooltip">
+                                                    请填写初始密码！
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="xpassword" class="h6">新密码</label>
+                                        <div class="row mb-3">
+                                            <div class="col-md-8">
+                                                <input type="password" class="form-control" id="xpassword" placeholder="新密码" aria-describedby="passwordHelpBlock" th:onkeyup="yz()" required>
+                                                <small id="passwordHelpBlock" class="form-text text-muted">
+                                                    您的密码长度必须为 8-16 个字符，包含字母和数字，并且不得包含空格、特殊字符或表情符号。
+                                                </small>
+                                                <div class="invalid-tooltip">
+                                                    不能为空！
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="password" class="h6">确认密码</label>
+                                        <div class="row mb-3">
+                                            <div class="col-md-8">
+                                                <input name="password" type="password" class="form-control" id="password" placeholder="确认密码" th:onkeyup="yz()" required>
+                                                <div class="invalid-tooltip">
+                                                    不能为空，且与新密码要一致！
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" name="id" th:value="${session.user.id}">
+                                    <input type="hidden" name="_csrf" th:value="${_csrf.token}" th:if="${_csrf}">
+                                    <button id="sub" class="btn btn-primary" type="submit" disabled>提交</button>
+                                </form>
+
+                                <form th:action="@{/guard/updatePassword}" th:method="POST" class="needs-validation newpwd"
+                                      style="display: none" sec:authorize="hasAnyRole('GUARD','MG','TESTER')" novalidate>
+                                    <div class="mb-3">
+                                        <label for="cpassword" class="h6">初始密码</label>
+                                        <div class="form-row mb-3">
+                                            <div class="col-md-8">
+                                                <input name="oldpassword" type="password" class="form-control" id="cpassword" placeholder="初始密码" required>
+                                                <div class="invalid-tooltip">
+                                                    请填写初始密码！
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="xpassword" class="h6">新密码</label>
+                                        <div class="row mb-3">
+                                            <div class="col-md-8">
+                                                <input type="password" class="form-control" id="xpassword" placeholder="新密码" aria-describedby="guardPasswordHelpBlock" th:onkeyup="yz()" required>
+                                                <small id="guardPasswordHelpBlock" class="form-text text-muted">
+                                                    您的密码长度必须为 8-16 个字符，包含字母和数字，并且不得包含空格、特殊字符或表情符号。
+                                                </small>
+                                                <div class="invalid-tooltip">
+                                                    不能为空！
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="password" class="h6">确认密码</label>
+                                        <div class="row mb-3">
+                                            <div class="col-md-8">
+                                                <input name="password" type="password" class="form-control" id="password" placeholder="确认密码" th:onkeyup="yz()" required>
+                                                <div class="invalid-tooltip">
+                                                    不能为空，且与新密码要一致！
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" name="id" th:value="${session.user.id}">
+                                    <input type="hidden" name="_csrf" th:value="${_csrf.token}" th:if="${_csrf}">
+                                    <button id="sub" class="btn btn-primary" type="submit" disabled>提交</button>
+                                </form>
+                            </div>
+                        </div>
+                        <input type="hidden" id="success-msg" th:value="${param.success}">
+                        <input type="hidden" id="error-msg" th:value="${param.error}">
+
+                    </div>
+                </div>
+                <script type="text/javascript">
+                    function mathAge() {
+                        var data = $("#birthday").val();
+                        var age1 = jsGetAge(data);
+                        $('#user-age').val(age1);
+                    }
+
+                    //计算年龄
+                    function jsGetAge(strBirthday) {
+                        var returnAge;
+                        // 根据生日计算年龄（"1995-09-25"）
+                        //以下五行是为了获取出生年月日，如果是从身份证上获取需要稍微改变一下
+                        var strBirthdayArr = strBirthday.split("-");
+                        var birthYear = strBirthdayArr[0];
+                        var birthMonth = strBirthdayArr[1];
+                        var birthDay = strBirthdayArr[2];
+
+                        d = new Date();
+                        var nowYear = d.getFullYear();
+                        var nowMonth = d.getMonth() + 1;
+                        var nowDay = d.getDate();
+
+                        if (nowYear == birthYear) {
+                            returnAge = 0;//同年 则为0岁
+                        } else {
+                            var ageDiff = nowYear - birthYear; //年之差
+                            if (ageDiff > 0) {
+                                if (nowMonth == birthMonth) {
+                                    var dayDiff = nowDay - birthDay;//日之差
+                                    if (dayDiff < 0) {
+                                        returnAge = ageDiff - 1;
+                                    } else {
+                                        returnAge = ageDiff;
+                                    }
+                                } else {
+                                    var monthDiff = nowMonth - birthMonth;//月之差
+                                    if (monthDiff < 0) {
+                                        returnAge = ageDiff - 1;
+                                    } else {
+                                        returnAge = ageDiff;
+                                    }
+                                }
+                            } else {
+                                returnAge = -1;//返回-1 表示出生日期输入错误 晚于今天
+                            }
+                        }
+
+                        return returnAge;//返回周岁年龄
+
+                    }
+
+                    function xg() {
+                        $("#pasd").css('display', 'none')
+                        $(".newpwd").css('display', 'block')
+
+                    }
+
+                    // 验证新密码是否一致
+                    function yz() {
+                        var pwd = document.getElementById("xpassword").value;
+                        var cpwd = document.getElementById("password").value;
+                        if (pwd == cpwd && 8 <= pwd.length &&  pwd.length <= 16) {
+                            document.getElementById("sub").disabled = false;
+                        } else {
+                            document.getElementById("sub").disabled = true;
+                        }
+                    }
+
+                </script>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"
+        integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+        crossorigin="anonymous"></script>
+<script>window.jQuery || document.write('<script th:src="@{/js/jquery.slim.min.js}"><\/script>')</script>
+<script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+<script th:src="@{/js/user-info.js}"></script>
+<script th:src="@{/js/dashboard.js}"></script>
+<script th:src="@{/js/toastr.min.js}"></script>
+<script th:src="@{/js/form-validation.js}"></script>
+</body>
+<script type="text/javascript">
+    var token = $("meta[name='_csrf']").attr("content");
+    var header = $("meta[name='_csrf_header']").attr("content");
+    $(document).ajaxSend(function (e, xhr, options) {
+        xhr.setRequestHeader(header, token);
+    })
+
+
+    function isEmpty(v) {
+        switch (typeof v) {
+            case 'undefined':
+                return true;
+            case 'string':
+                if (v.replace(/(^[ \t\n\r]*)|([ \t\n\r]*$)/g, '').length == 0) return true;
+                break;
+            case 'boolean':
+                if (!v) return true;
+                break;
+            case 'number':
+                if (0 === v || isNaN(v)) return true;
+                break;
+            case 'object':
+                if (null === v || v.length === 0) return true;
+                for (var i in v) {
+                    return false;
+                }
+                return true;
+        }
+        return false;
+    }
+
+    function msg() {
+
+        toastr.options.positionClass = 'toast-top-center';
+        var errMsg = $('#error-msg').val();
+        var succMsg = $('#success-msg').val();
+        if (!isEmpty(succMsg)) {
+            toastr.success(''+succMsg,'提示')
+        } else if (!isEmpty(errMsg)) {
+            toastr.error(''+errMsg,'错误')
+        }
+        return false
+    }
+
+    function app() {
+        mathAge()
+        msg()
+        findSign()
+    }
+</script>
+</html>

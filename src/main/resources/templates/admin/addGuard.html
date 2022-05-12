@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+    <meta name="generator" content="Hugo 0.88.1">
+    <!-- 解决ajax被spring security的CSRF拦截POST和PUT请求问题 -->
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+    <title>添加工作人员</title>
+
+    <!-- Bootstrap core CSS -->
+    <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
+
+    <style>
+        @media (min-width: 768px) {
+            #un {
+                color: var(--light);
+                font-size: 1.1rem;
+            }
+        }
+
+    </style>
+    <!-- Custom styles for this template -->
+    <link th:href="@{/css/dashboard.css}" rel="stylesheet">
+    <link th:href="@{/css/toastr.min.css}" rel="stylesheet">
+
+</head>
+<body onload="app()">
+
+<div th:replace="~{common :: top-nav}"></div>
+
+<div class="container-fluid">
+    <div class="row">
+        <!--左侧导航-->
+        <div class="col-2">
+            <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                <a class="nav-link" id="v-pills-admin-tab" role="tab" aria-selected="true" th:href="@{/login/main}"
+                   sec:authorize="hasAnyRole('ADMIN')">主页</a>
+                <a class="nav-link" id="v-pills-settings-tab" role="tab" aria-selected="true"
+                   th:href="@{/access/allInformation}" sec:authorize="hasAnyRole('MG','ADMIN')">出入信息管理</a>
+                <a class="nav-link" id="v-pills-health-tab" role="tab" aria-selected="true"
+                   th:href="@{/detected/findAll}" sec:authorize="hasAnyRole('MG','ADMIN')">核酸检测信息</a>
+                <a class="nav-link" id="v-pills-on-day-staff-tab" role="tab" aria-selected="true"
+                   th:href="@{/guard/onDayStaff}" sec:authorize="hasAnyRole('MG','ADMIN')">在班人员</a>
+                <a class="nav-link" id="v-pills-add-student-tab" role="tab" aria-selected="true" th:href="@{/addStu}"
+                   sec:authorize="hasAnyRole('ADMIN')">添加学生</a>
+                <a class="nav-link active" id="v-pills-add-guard-tab" role="tab" aria-selected="true"
+                   th:href="@{/addSec}" sec:authorize="hasAnyRole('ADMIN')">添加工作人员</a>
+                <a class="nav-link" id="v-pills-role-tab" role="tab" aria-selected="true" th:href="@{/adminPart/viewAll}" sec:authorize="hasAnyRole('ADMIN')">角色管理</a>
+            </div>
+        </div>
+        <!-- 添加工作人员 -->
+        <div class="col-10 px-5 py-md-3">
+            <div class="tab-pane fade show active" role="tabpanel" sec:authorize="hasRole('ADMIN')">
+                <label class="h3">添加工作人员信息</label>
+                <div class="row">
+                    <div class="col-md-8 col-sm-8" id="MyMessage">
+                        <form class="needs-validation" th:action="@{/adminSecurity/addGuard}" method="post" novalidate>
+                            <div class="mb-3">
+                                <label for="no" class="h6">
+                                    工号
+                                </label>
+                                <input type="text" name="gno" class="form-control" id="no" value="" placeholder="工号" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="h6" for="username">姓名</label>
+                                <input type="text" name="username" class="form-control" id="username" value="" placeholder="姓名" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="birthday" class="h6">出生日期</label>
+                                <input type="text" name="birth" class="form-control" id="birthday" value="" placeholder="1999/02/02" required>
+                                <small>
+                                    日期格式为1999/02/02
+                                </small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="email" class="h6">
+                                    工作人员邮箱
+                                </label>
+                                <input type="email" name="email" class="form-control" id="email" value="" placeholder="工作人员邮箱" required>
+                            </div>
+
+                            <div id="pasd" class="mb-3">
+                                <label for="pwd" class="h6">密码</label>
+                                <input type="text" name="password" class="form-control" id="pwd" placeholder="密码" value="123456" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="tel" class="h6">电话</label>
+                                <input type="text" name="phone" class="form-control" id="tel" placeholder="电话号码" value="" required>
+                            </div>
+
+                            <input type="hidden" name="_csrf" th:value="${_csrf.token}" th:if="${_csrf}">
+                            <button type="submit" class="btn btn-primary">提交</button>
+                        </form>
+                        <input type="hidden" id="success-msg" th:value="${param.success}">
+                        <input type="hidden" id="error-msg" th:value="${param.error}">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"
+        integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+        crossorigin="anonymous"></script>
+<script>window.jQuery || document.write('<script th:src="@{/js/jquery.slim.min.js}"><\/script>')</script>
+<script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+<script th:src="@{/js/user-info.js}"></script>
+<script th:src="@{/js/dashboard.js}"></script>
+<script th:src="@{/js/toastr.min.js}"></script>
+<script th:src="@{/js/form-validation.js}"></script>
+</body>
+<script type="text/javascript">
+    var token = $("meta[name='_csrf']").attr("content");
+    var header = $("meta[name='_csrf_header']").attr("content");
+    $(document).ajaxSend(function (e, xhr, options) {
+        xhr.setRequestHeader(header, token);
+    })
+
+
+    function isEmpty(v) {
+        switch (typeof v) {
+            case 'undefined':
+                return true;
+            case 'string':
+                if (v.replace(/(^[ \t\n\r]*)|([ \t\n\r]*$)/g, '').length == 0) return true;
+                break;
+            case 'boolean':
+                if (!v) return true;
+                break;
+            case 'number':
+                if (0 === v || isNaN(v)) return true;
+                break;
+            case 'object':
+                if (null === v || v.length === 0) return true;
+                for (var i in v) {
+                    return false;
+                }
+                return true;
+        }
+        return false;
+    }
+
+    function msg() {
+
+        toastr.options.positionClass = 'toast-top-center';
+        var errMsg = $('#error-msg').val();
+        var succMsg = $('#success-msg').val();
+        if (!isEmpty(succMsg)) {
+            toastr.success('' + succMsg, '提示')
+        } else if (!isEmpty(errMsg)) {
+            toastr.error('' + errMsg, '错误')
+        }
+        return false
+    }
+
+    function app() {
+        msg()
+    }
+</script>
+</html>

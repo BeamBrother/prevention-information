@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bl.ep.mapper.EPManagerMapper">
+    <resultMap id="ep_manager" type="EPManager">
+        <id property="id" column="id"/>
+        <result property="account" column="account"/>
+        <result property="password" column="password"/>
+        <association property="role" javaType="Role" column="role_id"
+                     select="com.bl.ep.mapper.RoleMapper.selectByPrimaryKey"/>
+    </resultMap>
+
+    <cache-ref namespace="com.bl.ep.mapper.EPManagerMapper"></cache-ref>
+
+    <select id="selectByAccount" resultMap="ep_manager">
+        select id,account,password,role_id
+        from ep_manager
+        where account=#{no}
+    </select>
+
+    <select id="selectById" resultMap="ep_manager">
+        select id,account,password,role_id
+        from ep_manager
+        where id=#{id}
+    </select>
+</mapper>

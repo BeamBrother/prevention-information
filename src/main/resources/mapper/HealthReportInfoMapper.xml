@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bl.ep.mapper.HealthReportInfoMapper">
+    <resultMap id="ep_report" type="HealthReportInfo">
+        <result property="refer" column="refer"/>
+        <result property="reportTime" column="report_time"/>
+        <collection property="student" ofType="Student">
+            <id column="id" property="id"/>
+            <result property="no" column="s_no"/>
+            <result property="username" column="s_name"/>
+            <result property="birthday" column="birthday"/>
+            <result property="department" column="department"/>
+            <result property="major" column="professional"/>
+        </collection>
+    </resultMap>
+
+    <cache-ref namespace="com.bl.ep.mapper.HealthReportInfoMapper"></cache-ref>
+
+    <insert id="insertSelective" parameterType="HealthReportInfo">
+        insert into ep_clock_in(refer,s_id,report_time)
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="refer != null">
+                #{refer},
+            </if>
+            <if test="student != null">
+                #{student.id},
+            </if>
+            <if test="reportTime != null">
+                #{reportTime}
+            </if>
+        </trim>
+    </insert>
+
+    <select id="selectAll" resultMap="ep_report">
+        select refer,report_time,s_no,s_name,birthday,department,professional
+        from ep_clock_in c join ep_student s on c.s_id=s.id
+        where report_time=#{reportTime}
+    </select>
+</mapper>

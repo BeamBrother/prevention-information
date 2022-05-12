@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+    <meta name="generator" content="Hugo 0.88.1">
+    <!-- 解决ajax被spring security的CSRF拦截POST和PUT请求问题 -->
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+    <title>核酸检测信息登记</title>
+
+    <!-- Bootstrap core CSS -->
+    <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
+    <style>
+        .bd-placeholder-img {
+            font-size: 1.125rem;
+            text-anchor: middle;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        @media (min-width: 768px) {
+            #un {
+                color: var(--light);
+                font-size: 1.1rem;
+            }
+        }
+
+    </style>
+    <!-- Custom styles for this template -->
+    <link th:href="@{/css/dashboard.css}" rel="stylesheet">
+    <link th:href="@{/css/toastr.min.css}" rel="stylesheet">
+
+    <script type="text/javascript">
+        window.onload = function (){
+            app()
+        }
+    </script>
+</head>
+<body>
+
+<div th:replace="~{common :: top-nav}"></div>
+
+<div class="container-fluid">
+    <div class="row">
+        <!--左侧导航-->
+        <div class="col-2">
+            <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist"  aria-orientation="vertical">
+                <a class="nav-link" id="v-pills-home-tab" role="tab" aria-selected="true" th:href="@{/login/main}" sec:authorize="hasAnyRole('STUDENT','GUARD','MG','TESTER')">个人信息</a>
+                <a class="nav-link" id="v-pills-messages-tab" role="tab" aria-selected="false" th:href="@{/access/accessInfo}" sec:authorize="hasAnyRole('GUARD','MG','ADMIN')">出入信息登记</a>
+                <a class="nav-link active" id="v-pills-tester-tab" role="tab" aria-selected="true" th:href="@{/studentHealth}" sec:authorize="hasRole('TESTER')">核酸检测信息登记</a>
+                <a class="nav-link" id="v-pills-code-tab" role="tab" aria-selected="true" th:href="@{/health/heathCode}" sec:authorize="hasRole('TESTER')">健康码信息</a>
+                <a class="nav-link" id="v-pills-settings-tab" role="tab" aria-selected="true" th:href="@{/access/allInformation}" sec:authorize="hasAnyRole('MG','ADMIN')">出入信息管理</a>
+                <a class="nav-link" id="v-pills-health-tab" role="tab" aria-selected="true" th:href="@{/detected/findAll}" sec:authorize="hasAnyRole('MG','ADMIN')">核酸检测信息</a>
+                <a class="nav-link" id="v-pills-staff-tab" role="tab" aria-selected="true" th:href="@{/guard/arrangeStaff}" sec:authorize="hasAnyRole('MG')">人员安排</a>
+                <a class="nav-link" id="v-pills-on-day-staff-tab" role="tab" aria-selected="true" th:href="@{/guard/onDayStaff}" sec:authorize="hasAnyRole('MG','ADMIN')">在班人员</a>
+            </div>
+        </div>
+        <!-- 核酸检测结果登记 -->
+        <div class="col-10">
+            <div class="tab-pane fade show active" id="v-pills-messages" role="tabpanel" sec:authorize="hasAnyRole('TESTER')">
+                <div class="row justify-content-md-center">
+                    <div class="col-md-10 py-md-3">
+                        <h3 class="mb-3">核酸检测信息登记</h3>
+                        <form class="needs-validation" th:action="@{/detected/insertHI}" method="post" novalidate>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="stuNo" class="h5">学号</label>
+                                    <input type="text" class="form-control" id="stuNo" name="sno" placeholder="学号" value="" onkeyup="isStn()" aria-describedby="stuNodHelpBlock" required>
+                                    <small id="stuNodHelpBlock" class="form-text text-muted">
+                                        学生学号长度为11位！
+                                    </small>
+                                    <div class="invalid-feedback">
+                                        请填写此字段!
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="stuName" class="h5">姓名</label>
+                                    <input type="text" class="form-control" name="sname" id="stuName" placeholder="姓名" value="" readonly required>
+                                </div>
+                                <div class="invalid-feedback">
+                                    请填写此字段!
+                                </div>
+                            </div>
+
+                            <hr class="mb-4">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="tr-address" class="h5">核酸检测地址</label>
+                                    <input type="text" class="form-control" id="tr-address" name="address" placeholder="检测地址" value="" aria-describedby="stuNodHelpBlock" required>
+                                    <div class="invalid-feedback">
+                                        请填写此字段!
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h5 class="mb-3">核酸检测结果</h5>
+                            <div class="d-block my-3">
+                                <div class="custom-control custom-radio">
+                                    <input id="credit" name="tresult" value="1" type="radio" class="custom-control-input" checked required>
+                                    <label class="custom-control-label" for="credit">阴性</label>
+                                </div>
+                                <div class="custom-control custom-radio">
+                                    <input id="debit" name="tresult" value="0" type="radio" class="custom-control-input" required>
+                                    <label class="custom-control-label" for="debit">阳性</label>
+                                </div>
+                            </div>
+                            <input type="hidden" name="gno" th:value="${session.user.id}">
+                            <input type="hidden" name="_csrf" th:value="${_csrf.token}" th:if="${_csrf}">
+                            <button class="btn btn-primary btn-lg btn-block" type="submit">提交</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <input type="hidden" id="success-msg" th:value="${param.success}">
+            <input type="hidden" id="error-msg" th:value="${param.error}">
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"
+        integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+        crossorigin="anonymous"></script>
+<script>window.jQuery || document.write('<script th:src="@{/js/jquery.slim.min.js}"><\/script>')</script>
+<script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+<script th:src="@{/js/user-info.js}"></script>
+<script th:src="@{/js/dashboard.js}"></script>
+<script th:src="@{/js/toastr.min.js}"></script>
+<script th:src="@{/js/form-validation.js}"></script>
+<script type="text/javascript">
+    var token = $("meta[name='_csrf']").attr("content");
+    var header = $("meta[name='_csrf_header']").attr("content");
+    $(document).ajaxSend(function (e, xhr, options) {
+        xhr.setRequestHeader(header, token);
+    })
+
+    var isTrue = false;
+
+    function isStn() {
+        var sno = $("#stuNo").val();
+        if (sno.length === 10) {
+            if (isTrue) {
+                return false;
+            }
+            $.ajax({
+                url: "/student/findSByN",
+                dataType: "json",
+                type: "post",
+                data: {
+                    "sno": sno
+                },
+                success: function (res) {
+                    console.log(res)
+                    if (res.status === 1) {
+                        $("#stuName").val(res.stu.username)
+                        $("#infoS").removeAttr("disabled")
+                        isTrue = true;
+                    } else {
+                        toastr.warning("waring", res.error)
+                        $("#infoS").attr("disabled", true)
+                    }
+                },
+                error: function (res) {
+                    toastr.error("error", "错误！")
+                }
+            });
+        } else {
+            isTrue = false;
+        }
+
+    }
+
+    function msg() {
+
+        toastr.options.positionClass = 'toast-top-center';
+        var errMsg = $('#error-msg').val();
+        var succMsg = $('#success-msg').val();
+        if (!isEmpty(succMsg)) {
+            toastr.success(''+succMsg,'提示')
+        } else if (!isEmpty(errMsg)) {
+            toastr.error(''+errMsg,'错误')
+        }
+        return false
+    }
+
+    function app() {
+        msg()
+    }
+</script>
+</body>
+</html>

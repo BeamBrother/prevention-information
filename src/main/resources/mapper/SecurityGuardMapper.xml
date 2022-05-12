@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bl.ep.mapper.SecurityGuardMapper">
+    <resultMap id="ep_guard" type="SecurityGuard">
+        <id property="id" column="id" jdbcType="BIGINT"/>
+        <result property="no" column="g_no"/>
+        <result property="username" column="g_name"/>
+        <result property="password" column="password"/>
+        <result property="birthday" column="birthday"/>
+        <result property="email" column="g_email"/>
+        <result property="phone" column="g_phone"/>
+        <result property="onDay" column="on_day"/>
+        <association property="role" column="role_id"
+                     javaType="Role"
+                     select="com.bl.ep.mapper.RoleMapper.selectByPrimaryKey"/>
+    </resultMap>
+    <resultMap id="ep_simguard" type="SecurityGuard">
+        <id property="id" column="id" jdbcType="BIGINT"/>
+        <result property="no" column="g_no"/>
+        <result property="username" column="g_name"/>
+        <result property="birthday" column="birthday"/>
+        <result property="email" column="g_email"/>
+        <result property="phone" column="g_phone"/>
+        <result property="onDay" column="on_day"/>
+        <association property="role" column="role_id"
+                     javaType="Role"
+                     select="com.bl.ep.mapper.RoleMapper.selectByPrimaryKey"/>
+    </resultMap>
+
+    <cache-ref namespace="com.bl.ep.mapper.SecurityGuardMapper"></cache-ref>
+
+    <select id="selectByAccount" resultMap="ep_guard">
+        select id,
+               g_no,
+               g_name,
+               password,
+               birthday,
+               g_email,
+               g_phone,
+               on_day,
+               role_id
+        from ep_guard
+        where g_no = #{no}
+    </select>
+
+    <select id="selectByPrimaryKey" resultMap="ep_guard">
+        select id,
+               g_no,
+               g_name,
+               password,
+               birthday,
+               g_email,
+               g_phone,
+               on_day,
+               role_id
+        from ep_guard
+        where id = #{id}
+    </select>
+
+    <select id="selectAll" resultMap="ep_simguard">
+        select id,
+               g_no,
+               g_name,
+               birthday,
+               g_email,
+               g_phone,
+               on_day,
+               role_id
+        from ep_guard
+    </select>
+
+    <select id="selectByOnDay" resultMap="ep_simguard">
+        select id,
+               g_no,
+               g_name,
+               birthday,
+               g_email,
+               g_phone,
+               on_day,
+               role_id
+        from ep_guard
+        where on_day = 1
+    </select>
+
+    <select id="selectByRole" resultMap="ep_simguard">
+        select g.id,
+               g.g_no,
+               g.g_name,
+               g.birthday,
+               g.g_email,
+               g.g_phone,
+               g.on_day,
+               g.role_id
+        from ep_guard g
+                 join ep_role r on g.role_id = r.id
+        where r.role = #{role}
+    </select>
+
+    <update id="updatePasswordAndId" parameterType="SecurityGuard">
+        update ep_guard
+        set password=#{password}
+        where id = #{id}
+    </update>
+
+    <update id="updateSelective" parameterType="list">
+        <foreach collection="list" item="security" separator=";">
+            update ep_guard
+            set on_day=#{security.onDay},
+            role_id=#{security.role.id}
+            where id=#{security.id}
+        </foreach>
+    </update>
+
+    <update id="updateOnDayById" parameterType="list">
+        <foreach collection="list" item="security" separator=";">
+            update ep_guard
+            set on_day=#{security.onDay}
+            where id = #{security.id}
+        </foreach>
+    </update>
+
+    <update id="updateOnDay">
+        update ep_guard
+        set on_day=#{onDay}
+        where role_id!=5
+    </update>
+</mapper>

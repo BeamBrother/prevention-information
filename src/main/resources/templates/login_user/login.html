@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>登录</title>
+    <link type="text/css" th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
+    <link type="text/css" th:href="@{/css/login/signin.css}" rel="stylesheet">
+</head>
+<body>
+<form class="form-signin" th:action="@{/login/login}" th:method="post" >
+    <h1 class="h3 mb-3 font-weight-normal">请登录</h1>
+    <!-- 用户登录错误信息提示框 -->
+    <div th:if="${param.error}" style="color: red;height: 40px;text-align: left;font-size: 1.1em">
+        <img th:src="@{/img/loginError.jpg}" width="20px">用户名或密码错误，请重新登录！
+    </div>
+    <input type="hidden" name="_csrf" th:value="${_csrf.token}" th:if="${_csrf}">
+    <input type="text" name="username" class="form-control" placeholder="学号/工号" required="" autofocus="">
+    <input type="password" name="password" class="form-control" placeholder="密码" required="">
+    <div class="checkbox mb-3">
+        <label>
+            <input type="checkbox" name="rememberme" value="true"> 记住我
+        </label>
+    </div>
+    <button class="btn btn-lg btn-primary btn-block" type="submit" >登录</button>
+    <p class="mt-5 mb-3 text-muted">Copyright© 2021-2021</p>
+</form>
+</body>
+</html>

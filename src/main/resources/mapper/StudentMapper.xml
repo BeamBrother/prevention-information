@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bl.ep.mapper.StudentMapper">
+    <resultMap id="ep_stu" type="Student">
+        <id property="id" column="id" jdbcType="BIGINT"/>
+        <result property="no" column="s_no"/>
+        <result property="username" column="s_name"/>
+        <result property="password" column="password"/>
+        <result property="department" column="department"/>
+        <result property="major" column="professional"/>
+        <result property="email" column="s_email"/>
+        <association property="role" column="role_id"
+                     javaType="Role"
+                     select="com.bl.ep.mapper.RoleMapper.selectByPrimaryKey"/>
+    </resultMap>
+
+    <resultMap id="ep_name" type="Student">
+        <id property="id" column="id" jdbcType="BIGINT"/>
+        <result property="no" column="s_no"/>
+        <result property="username" column="s_name"/>
+        <result property="department" column="department"/>
+        <result property="major" column="professional"/>
+        <result property="email" column="s_email"/>
+        <association property="role" column="role_id"
+                     javaType="Role"
+                     select="com.bl.ep.mapper.RoleMapper.selectByPrimaryKey"/>
+    </resultMap>
+
+    <cache-ref namespace="com.bl.ep.mapper.StudentMapper"></cache-ref>
+
+    <select id="selectByPrimaryKey" resultMap="ep_stu">
+        select id,
+               s_no,
+               s_name,
+               password,
+               birthday,
+               department,
+               professional,
+               s_email,
+               role_id
+        from ep_student
+        where id = #{id}
+    </select>
+
+    <select id="selectByNameAndNo" resultMap="ep_name">
+        select id,
+               s_no,
+               s_name,
+               birthday,
+               department,
+               professional,
+               s_email,
+               role_id
+        from ep_student
+        where s_no = #{no}
+          and s_name = #{username}
+    </select>
+
+    <select id="selectAll" resultMap="ep_name">
+        select id, s_no, s_name, birthday, department, professional, s_email
+        from ep_student
+    </select>
+
+    <select id="selectByAccount" resultMap="ep_stu">
+        select id,
+               s_no,
+               s_name,
+               password,
+               birthday,
+               department,
+               professional,
+               s_email,
+               role_id
+        from ep_student
+        where s_no = #{no}
+    </select>
+
+    <update id="updatePasswordAndId" parameterType="Student">
+        update ep_student
+        set password=#{password}
+        where id = #{id}
+    </update>
+</mapper>

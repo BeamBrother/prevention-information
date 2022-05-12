@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bl.ep.mapper.NucleicAcidDetectMapper">
+    <resultMap id="ep_result" type="NucleicAcidDetect">
+        <id property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="time" column="tr_time"/>
+        <result property="result" column="tr_result"/>
+        <result property="address" column="tr_address"/>
+        <association property="healthCode" column="hc_id"
+                     javaType="HealthCode"
+                     select="com.bl.ep.mapper.HealthCodeMapper.selectByPrimaryKey"/>
+        <association property="securityGuard" column="g_id" javaType="SecurityGuard"
+                     select="com.bl.ep.mapper.SecurityGuardMapper.selectByPrimaryKey"/>
+    </resultMap>
+
+    <cache-ref namespace="com.bl.ep.mapper.NucleicAcidDetectMapper"></cache-ref>
+
+    <insert id="insertSelective" parameterType="NucleicAcidDetect">
+        insert into ep_test_result(id,tr_time,tr_result,tr_address,hc_id,g_id)
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id},
+            </if>
+            <if test="time != null">
+                #{time},
+            </if>
+            <if test="result != null">
+                #{result},
+            </if>
+            <if test="address != null">
+                #{address},
+            </if>
+            <if test="healthCode != null">
+                #{healthCode.id},
+            </if>
+            <if test="securityGuard != null">
+                #{securityGuard.id},
+            </if>
+        </trim>
+    </insert>
+
+    <select id="selectByUserNo" resultMap="ep_result">
+        select ts.id, ts.tr_time, ts.tr_result, ts.tr_address, ts.hc_id, ts.g_id
+        from ep_test_result ts
+                 join ep_health_code hc
+                      on ts.hc_id = hc.id
+                 join ep_student stu
+                     on hc.stu_id = stu.id
+        where stu.s_no = #{no}
+    </select>
+
+    <select id="selectByPrimaryKey" resultMap="ep_result">
+        select id, tr_time, tr_result, tr_address, hc_id, g_id
+        from ep_test_result
+        where id=#{id}
+    </select>
+
+    <select id="selectAll" resultMap="ep_result">
+        select id, tr_time, tr_result, tr_address, hc_id, g_id
+        from ep_test_result
+    </select>
+
+</mapper>

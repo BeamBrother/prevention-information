@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bl.ep.mapper.AccessInformationMapper">
+    <resultMap id="ep_access" type="AccessInformation">
+        <id property="id" column="id" javaType="String" jdbcType="VARCHAR"/>
+        <result column="to_time" property="time"/>
+        <result column="to_turnover" property="turnover"/>
+        <result column="to_yn" property="yn"/>
+        <result column="to_post" property="doorPost"/>
+        <association property="student" column="stu_id" javaType="Student"
+                     select="com.bl.ep.mapper.StudentMapper.selectByPrimaryKey"/>
+        <association property="securityGuard" column="g_id"
+                     javaType="SecurityGuard"
+                     select="com.bl.ep.mapper.SecurityGuardMapper.selectByPrimaryKey"/>
+    </resultMap>
+
+    <cache-ref namespace="com.bl.ep.mapper.AccessInformationMapper"></cache-ref>
+
+    <insert id="insertSelective" parameterType="AccessInformation">
+        insert into ep_turnover(id, stu_id, g_id, to_time, to_turnover, to_yn,to_post)
+        values (#{id}, #{student.id}, #{securityGuard.id}, #{time}, #{turnover}, #{yn},#{doorPost})
+    </insert>
+
+    <select id="selectByPrimaryKey" resultMap="ep_access">
+        select id, stu_id, g_id, to_time, to_turnover, to_yn, to_post
+        from ep_turnover
+        where id = #{id}
+    </select>
+
+    <select id="selectByTimeAndId" resultMap="ep_access">
+        select id, stu_id, g_id, to_time, to_turnover, to_yn, to_post
+        from ep_turnover
+        where to_time between #{start} and #{end}
+    </select>
+
+    <select id="selectAll" resultMap="ep_access">
+        select id, stu_id, g_id, to_time, to_turnover, to_yn, to_post
+        from ep_turnover
+        ORDER BY to_time desc, stu_id desc
+    </select>
+
+    <select id="selectAllByStudent" resultMap="ep_access">
+        select tu.id, tu.stu_id, tu.g_id, tu.to_time, tu.to_turnover, tu.to_yn, tu.to_post
+        from ep_turnover tu
+                 join ep_student stu on tu.stu_id = stu.id
+        where stu.id = #{stu_id}
+        ORDER BY tu.to_time desc, tu.id desc
+    </select>
+
+    <select id="selectCount" resultType="Long">
+        select count(*)
+        from ep_turnover
+    </select>
+
+    <select id="selectBySnoAndSname" resultMap="ep_access">
+        select tu.id, tu.stu_id, tu.g_id, tu.to_time, tu.to_turnover, tu.to_yn, tu.to_post
+        from ep_turnover tu
+                 join ep_student stu on tu.stu_id = stu.id
+        where stu.s_no = #{stu_no}
+          and stu.s_name = #{stu_name}
+        ORDER BY tu.to_time desc, tu.id desc
+    </select>
+</mapper>

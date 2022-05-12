@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bl.ep.mapper.RoleMapper">
+    <resultMap id="ep_role" type="Role">
+        <id column="id" property="id"/>
+        <result column="role" property="role"/>
+        <result column="comment" property="describe"/>
+    </resultMap>
+
+    <cache-ref namespace="com.bl.ep.mapper.RoleMapper"></cache-ref>
+
+    <select id="selectByRoleStr" resultMap="ep_role">
+        select id, role,comment
+        from ep_role
+        where role = #{role}
+    </select>
+
+    <select id="selectByPrimaryKey" resultMap="ep_role">
+        select id, role,comment
+        from ep_role
+        where id = #{id}
+    </select>
+
+    <select id="selectAll" resultMap="ep_role">
+        select id, role,comment
+        from ep_role
+    </select>
+</mapper>

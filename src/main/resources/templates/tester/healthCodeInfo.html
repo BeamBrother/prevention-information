@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+    <meta name="generator" content="Hugo 0.88.1">
+    <!-- 解决ajax被spring security的CSRF拦截POST和PUT请求问题 -->
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+    <title>健康码信息</title>
+
+    <!-- Bootstrap core CSS -->
+    <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
+    <style>
+        .bd-placeholder-img {
+            font-size: 1.125rem;
+            text-anchor: middle;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        @media (min-width: 768px) {
+            #un {
+                color: var(--light);
+                font-size: 1.1rem;
+            }
+        }
+
+    </style>
+    <!-- Custom styles for this template -->
+    <link th:href="@{/css/dashboard.css}" rel="stylesheet">
+    <link th:href="@{/css/toastr.min.css}" rel="stylesheet">
+
+    <script type="text/javascript">
+        window.onload = function (){
+            app()
+        }
+    </script>
+</head>
+<body>
+
+<div th:replace="~{common :: top-nav}"></div>
+
+<div class="container-fluid">
+    <div class="row">
+        <!--左侧导航-->
+        <div class="col-2">
+            <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                <a class="nav-link" id="v-pills-home-tab" role="tab" aria-selected="true" th:href="@{/login/main}" sec:authorize="hasAnyRole('STUDENT','GUARD','MG','TESTER')">个人信息</a>
+                <a class="nav-link" id="v-pills-profile-tab" role="tab" aria-selected="false" th:href="@{/access/info(id=${session.user.id})}" sec:authorize="hasRole('STUDENT')">出入记录</a>
+                <a class="nav-link" id="v-pills-messages-tab" role="tab" aria-selected="false" th:href="@{/access/accessInfo}" sec:authorize="hasAnyRole('GUARD','MG')">出入信息登记</a>
+                <a class="nav-link" id="v-pills-tester-tab" role="tab" aria-selected="true" th:href="@{/studentHealth}" sec:authorize="hasRole('TESTER')">核酸检测信息登记</a>
+                <a class="nav-link active" id="v-pills-code-tab" role="tab" aria-selected="true" th:href="@{/health/heathCode}" sec:authorize="hasRole('TESTER')">健康码信息</a>
+                <a class="nav-link" id="v-pills-settings-tab" role="tab" aria-selected="true" th:href="@{/access/allInformation}" sec:authorize="hasAnyRole('MG','ADMIN')">出入信息管理</a>
+                <a class="nav-link" id="v-pills-health-tab" role="tab" aria-selected="true" th:href="@{/detected/findAll}" sec:authorize="hasAnyRole('MG','ADMIN')">核酸检测信息</a>
+                <a class="nav-link" id="v-pills-staff-tab" role="tab" aria-selected="true" th:href="@{/guard/arrangeStaff}" sec:authorize="hasAnyRole('MG')">人员安排</a>
+                <a class="nav-link" id="v-pills-on-day-staff-tab" role="tab" aria-selected="true" th:href="@{/guard/onDayStaff}" sec:authorize="hasAnyRole('MG','ADMIN')">在班人员</a>
+                <a class="nav-link" id="v-pills-add-student-tab" role="tab" aria-selected="true" th:href="@{/addStu}" sec:authorize="hasAnyRole('ADMIN')">添加学生</a>
+            </div>
+        </div>
+        <!-- 健康码信息 -->
+        <div class="col-10">
+            <div th:if="${healthCode == null}">
+                <img th:src="@{/img/zwnr.png}" class="img-fluid rounded mx-auto d-block">
+            </div>
+            <div class="tab-pane fade show active" id="v-pills-messages" role="tabpanel" sec:authorize="hasAnyRole('TESTER')" th:if="${healthCode != null}">
+                <div class="px-4 py-md-3">
+                    <!-- 学号和姓名查询 -->
+                    <form class="needs-validation" th:action="@{/health/healthBySno}" method="post" novalidate>
+                        <div class="form-row justify-content-center">
+                            <label for="stu-no" class="col-form-label">学号:</label>
+                            <div class="col-md-4">
+                                <input type="text" name="sno" id="stu-no" class="form-control" placeholder="学号" required>
+                                <div class="invalid-feedback">
+                                    请填写正确学号!
+                                </div>
+                            </div>
+                            <label for="stu-name" class="col-form-label">姓名:</label>
+                            <div class="col-md-4">
+                                <input type="text" name="sname" id="stu-name" class="form-control" placeholder="姓名" required>
+                                <div class="invalid-feedback">
+                                    请填写对应姓名!
+                                </div>
+                            </div>
+                            <div class="col-md-1">
+                                <button type="submit" class="btn btn-primary mb-2">查询</button>
+                            </div>
+                        </div>
+                        <input type="hidden" name="_csrf" th:value="${_csrf.token}" th:if="${_csrf}">
+                    </form>
+                </div>
+                <div class="row justify-content-md-center">
+                    <div class="col-md-10">
+                        <h3 class="mb-3">健康码信息</h3>
+                        <table class="table table-striped table-hover table-bordered">
+                            <thead class="thead-dark">
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">学号</th>
+                                <th scope="col">姓名</th>
+                                <th scope="col">健康码状态</th>
+                                <th scope="col">操作</th>
+                            </tr>
+                            </thead>
+                            <tbody id="table_result">
+                            <tr th:each="health,stat : ${healthCode}" th:class="${stat.odd}?'odd':'even'">
+                                <th scope="row" th:text="${stat.count}"></th>
+                                <td th:text="${health.student.no}"></td>
+                                <td th:text="${health.student.username}"></td>
+                                <td th:text="绿码" th:if="${health.hCode==1}"></td>
+                                <td th:text="黄码" th:if="${health.hCode==2}"></td>
+                                <td th:text="红码" th:if="${health.hCode==3}"></td>
+                                <td>
+                                    <button type="button" class="btn btn-warning btn-sm" data-toggle="model" data-target="#exampleModal" th:onclick="upd([[${health.id}]])">修改
+                                    </button>
+                                    <!-- 修改弹框 -->
+                                    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="exampleModalLabel">健康码状态修改</h5>
+                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                        <span aria-hidden="true">&times;</span>
+                                                    </button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <form class="form-inline">
+                                                        <div class="form-group">
+                                                            <label for="recipient-sno" class="col-form-label">学号:</label>
+                                                            <input type="text" class="form-control" id="recipient-sno" value="" readonly>
+                                                            <input type="hidden" class="form-control" id="recipient-id" value="" readonly>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label for="recipient-name" class="col-form-label">姓名:</label>
+                                                            <input type="text" class="form-control" value="" id="recipient-name" readonly>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label for="message-text" class="col-form-label">健康码状态:</label>
+                                                            <div class="d-block my-3" id="message-text">
+                                                                <div class="custom-control custom-radio">
+                                                                    <input id="jk" name="healthCode" value="1" type="radio" class="custom-control-input" required>
+                                                                    <label class="custom-control-label" for="jk">健康码为绿码</label>
+                                                                </div>
+                                                                <div class="custom-control custom-radio">
+                                                                    <input id="hjk" name="healthCode" value="2" type="radio" class="custom-control-input" required>
+                                                                    <label class="custom-control-label" for="hjk">健康码为黄码</label>
+                                                                </div>
+                                                                <div class="custom-control custom-radio">
+                                                                    <input id="rjk" name="healthCode" value="3" type="radio" class="custom-control-input" required>
+                                                                    <label class="custom-control-label" for="rjk">健康码为红码</label>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                                                    <button type="button" class="btn btn-primary" onclick="save()">
+                                                        保存修改
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                        <div id="barcon" name="barcon"></div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <input id="waring-msg" type="hidden" th:value="${error}">
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"
+        integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+        crossorigin="anonymous"></script>
+<script>window.jQuery || document.write('<script th:src="@{/js/jquery.slim.min.js}"><\/script>')</script>
+<script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+<script th:src="@{/js/user-info.js}"></script>
+<script th:src="@{/js/dashboard.js}"></script>
+<script th:src="@{/js/toastr.min.js}"></script>
+<script th:src="@{/js/form-validation.js}"></script>
+<script type="text/javascript">
+    var token = $("meta[name='_csrf']").attr("content");
+    var header = $("meta[name='_csrf_header']").attr("content");
+    $(document).ajaxSend(function (e, xhr, options) {
+        xhr.setRequestHeader(header, token);
+    })
+
+    //获取参数 提示是否成功
+    function msg() {
+        toastr.options.positionClass = 'toast-top-center';
+        var warMsg = $('#waring-msg').val();
+        if (!isEmpty(warMsg)) {
+            toastr.warning('' + warMsg, '提示')
+        }
+        return false
+    }
+
+    //调用方法
+    function app() {
+        msg()
+        goPage(1, 20)
+    }
+
+    function goPage(pno, psize) {
+        var itable = document.getElementById("table_result");//通过ID找到表格
+        var num = itable.rows.length;//表格所有行数(所有记录数)
+        var totalPage = 0;//总页数
+        var pageSize = psize;//每页显示行数
+        //总共分几页
+        if (num / pageSize > parseInt(num / pageSize)) {
+            totalPage = parseInt(num / pageSize) + 1;
+        } else {
+            totalPage = parseInt(num / pageSize);
+        }
+        var currentPage = pno;//当前页数
+        var startRow = (currentPage - 1) * pageSize + 1;//开始显示的行  1
+        var endRow = currentPage * pageSize;//结束显示的行   15
+        endRow = (endRow > num) ? num : endRow;
+        //遍历显示数据实现分页
+        for (var i = 1; i < (num + 1); i++) {
+            var irow = itable.rows[i - 1];
+            if (i >= startRow && i <= endRow) {
+                irow.style.display = "table-row";
+            } else {
+                irow.style.display = "none";
+            }
+        }
+        var tempStr = "";
+        tempStr += "<div class='row justify-content-center py-md-3'>" +
+            "<nav aria-label=\"AccessInfo For Student\">" +
+            "<ul class=\"pagination\">"
+        if (currentPage > 1) {
+            tempStr += "<li class=\"page-item\">" +
+                "<a class=\"page-link\" href=\"#\" onClick=\"goPage(" + (currentPage - 1) + "," + psize + ")\"><上一页&nbsp;</a>" +
+                "</li>";
+
+            var jhs = 1;
+            for (var j = 1; j <= totalPage; j++) {
+                tempStr += "<li class=\"page-item\">" +
+                    "<a class=\"page-link\" href=\"#\" onClick=\"goPage(" + j + "," + psize + ")\">" + j + "</a>" +
+                    "</li>";
+                jhs++;
+                if (jhs > 6) {
+                    tempStr += "<li class=\"page-item disabled\">" +
+                        "<a class=\"page-link\" >...</a>" +
+                        "</li>";
+                    break;
+                }
+            }
+        } else {
+            tempStr += "<li class=\"page-item disabled\">" +
+                "<a class=\"page-link\" href=\"#\" onClick=\"goPage(" + (currentPage - 1) + "," + psize + ")\"><上一页&nbsp;</a>" +
+                "</li>"
+            var jhs = 1;
+            for (var j = 1; j <= totalPage; j++) {
+                tempStr += "<li class=\"page-item\">" +
+                    "<a class=\"page-link\" href=\"#\" onClick=\"goPage(" + j + "," + psize + ")\">" + j + "</a>" +
+                    "</li>";
+                jhs++;
+                if (jhs > 6) {
+                    tempStr += "<li class=\"page-item disabled\">" +
+                        "<a class=\"page-link\" >...</a>" +
+                        "</li>";
+                    break;
+                }
+            }
+        }
+        if (currentPage < totalPage) {
+            tempStr += "<li class=\"page-item\">" +
+                "<a class=\"page-link\" href=\"#\" onClick=\"goPage(" + (currentPage + 1) + "," + psize + ")\">下一页>&nbsp;</a>" +
+                "</li>";
+            for (var j = 1; j <= totalPage; j++) {
+            }
+        } else {
+            tempStr += "<li class=\"page-item disabled\">" +
+                "<a class=\"page-link\" href=\"#\" onClick=\"goPage(" + (currentPage + 1) + "," + psize + ")\">下一页>&nbsp;</a>" +
+                "</li>";
+            for (var j = 1; j <= totalPage; j++) {
+            }
+        }
+        tempStr += "</ul>" +
+            "</nav>" +
+            "</div>"
+        tempStr += "<div class='row justify-content-center'>当前第 " + pno + " 页 总计 " + totalPage + " 页 共 " + num + " 条记录</div>"
+        document.getElementById("barcon").innerHTML = tempStr;
+    }
+
+    function upd(id) {
+        $("#exampleModal").modal({
+            keyboard: true
+        })
+        edit(id)
+    }
+
+    //修改信息
+    function edit(id) {
+        //根据 id 查询健康码信息  并赋值为文本框
+        $.ajax({
+            url: "/health/healthById",
+            data: {
+                "id": id
+            },
+            type: "get",
+            dataType: "json",
+            success: function (res) {
+                $("#recipient-sno").val(res.student.no);
+                $("#recipient-name").val(res.student.username);
+                $("#recipient-id").val(res.id)
+                $("input[name='healthCode'][value=" + res.hCode + "]").prop("checked", "checked");
+            }
+        });
+    }
+
+    function save() {
+        //获取值
+        var id = $("#recipient-id").val();
+        var hc = $("input[name='healthCode']:checked").val();
+        //调用ajax
+        $.ajax({
+            url: "/health/editHealth",
+            type: "post",
+            dataType: "json",
+            data: {
+                "id": id,
+                "hCode": hc
+            },
+            success: function (res) {
+                if (res === 1) {
+                    //关闭对话框
+                    $("#exampleModal").modal("hide");
+                    //清空文本框
+                    $("#recipient-sno").val("");
+                    $("#recipient-name").val("");
+                    $("#recipient-id").val("")
+                    //刷新页面
+                    window.location.href = "/health/heathCode";
+                    toastr.success("修改成功！")
+                }
+            }
+        });
+    }
+
+</script>
+</body>
+</html>

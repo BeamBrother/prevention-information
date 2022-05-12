@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5">
+<head>
+
+</head>
+<body>
+<!--顶部导航-->
+<nav th:fragment="top-nav" class="navbar navbar-expand-md navbar-dark bg-dark">
+    <a class="navbar-brand" th:href="@{/login/index}">校园防疫出入信息管理系统</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar" aria-controls="navbar"
+            aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <!--    <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search">-->
+    <div class="collapse navbar-collapse" id="navbar">
+        <ul class="navbar-nav mr-auto mt-2 mt-md-0">
+            <li class="nav-item px-3">
+            </li>
+        </ul>
+        <div class="form-inline mt-2 mt-md-0">
+            <div class="pr-4">
+                 <span id="un" class="text-center" th:text="${session.user.username}" disabled sec:authorize="hasAnyRole('STUDENT','GUARD','MG','TESTER')"></span>
+                <span id="un" class="text-center" sec:authorize="hasAnyRole('ADMIN')" disabled>Admin</span>
+                <a class="nav-link" th:href="@{/login/userLogin}" sec:authorize="!isAuthenticated()">登录</a>
+            </div>
+            <div class="btn-group pr-3" role="group" sec:authorize="hasRole('STUDENT')">
+                <input type="hidden" id="sno" th:value="${session.user.no}">
+                <!--                <button class="btn btn-light btn-sm" id="stu-sign" type="button">-->
+                <form method="get" th:action="@{/stu/sign-in}">
+                    <button class="btn btn-light btn-sm" id="sign-button" type="submit"><span id="stu-sign">签到</span></button>
+                </form>
+                <!--                </button>-->
+                <script type="text/javascript">
+                    function findSign() {
+                        var stuno = $('#sno').val();
+                        $.ajax({
+                            url: "/security/find",
+                            type: "get",
+                            dataType: "json",
+                            data: {"sno": stuno},
+                            success: function (res) {
+                                if (res.status) {
+                                    $("#stu-sign").text('已签到');
+                                    $("#sign-button").attr('disabled', 'disabled');
+                                }
+                            }
+                        })
+                    }
+                </script>
+            </div>
+            <form th:action="@{/logout}" method="post" class="form-inline mt-2 mt-md-0 pr-3">
+                <input type="hidden" name="_csrf" th:value="${_csrf.token}" th:if="${_csrf}">
+                <button class="btn btn-light btn-sm" type="submit"><span>登出</span></button>
+            </form>
+        </div>
+    </div>
+
+</nav>
+
+<!--javascript-->
+
+</body>
+</html>

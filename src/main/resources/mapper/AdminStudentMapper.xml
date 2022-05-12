@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bl.ep.mapper.AdminStudentMapper">
+    <cache-ref namespace="com.bl.ep.mapper.AdminStudentMapper"></cache-ref>
+    <insert id="insertSelective" parameterType="Student">
+        <selectKey keyProperty="id" resultType="Long" order="AFTER">
+            select last_insert_id()
+        </selectKey>
+        insert into ep_student(s_no,s_name,password,birthday,department,professional,s_email,role_id)
+        values(#{no},#{username},#{password},#{birthday},#{department},#{major},#{email},#{role.id})
+    </insert>
+</mapper>
